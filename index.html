@@ -3,44 +3,451 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Замени этот заголовок</title>
+<title>НМТ: подготовка — формулы, правила, тесты</title>
 <style>
-  :root { --bg: #fbfbfa; --fg: #1a1a18; --dim: #6b6b66; --line: #e4e4e0; }
+  :root { --bg: #fbfbfa; --fg: #1a1a18; --dim: #6b6b66; --line: #e4e4e0;
+          --card: #ffffff; --accent: #2b5fd9; --ok: #1a7f44; --bad: #c0392b; }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #16161a; --fg: #f0f0ee; --dim: #9a9a95; --line: #2e2e34; }
+    :root { --bg: #16161a; --fg: #f0f0ee; --dim: #9a9a95; --line: #2e2e34;
+            --card: #1e1e24; --accent: #7aa2f7; --ok: #4fc47f; --bad: #ff7a6b; }
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; padding: 48px 16px; background: var(--bg); color: var(--fg);
+    margin: 0; padding: 32px 16px 64px; background: var(--bg); color: var(--fg);
     font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     display: flex; justify-content: center;
   }
-  main { max-width: 34rem; width: 100%; }
-  h1 { font-size: 1.75rem; line-height: 1.2; margin: 0 0 .75rem; }
-  p { margin: 0 0 1rem; }
+  main { max-width: 44rem; width: 100%; }
+  h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 .4rem; }
+  h2 { font-size: 1.25rem; margin: 2rem 0 .75rem; }
+  h3 { font-size: 1.05rem; margin: 0 0 .5rem; }
+  p { margin: 0 0 .75rem; }
   .dim { color: var(--dim); }
-  .box { border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-top: 28px; }
-  code { background: var(--line); padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  .small { font-size: .9rem; }
+
+  /* Переключатели: предметы и режим (теория / тест) */
+  nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 8px; }
+  button {
+    font: inherit; color: var(--fg); background: var(--card);
+    border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 14px; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* Карточка темы и карточка вопроса */
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 16px 18px; margin-bottom: 16px;
+  }
+  .formula {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+    padding: 6px 10px; margin: 0 0 6px; display: block;
+    overflow-x: auto; white-space: nowrap;
+  }
+  .formula-slovami { margin: 0 0 12px; }
+  ol.steps { margin: 0; padding-left: 1.3rem; }
+  ol.steps li { margin-bottom: .3rem; }
+
+  /* Варианты ответа — колонкой, чтобы палец попадал на телефоне */
+  .varianty { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 0; }
+  .varianty button { text-align: left; }
+  .razbor { margin-top: 12px; border-left: 3px solid var(--accent); padding-left: 12px; }
+  .verno { color: var(--ok); font-weight: 600; }
+  .neverno { color: var(--bad); font-weight: 600; }
+
+  textarea {
+    width: 100%; min-height: 8rem; font: inherit; color: var(--fg);
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px; resize: vertical;
+  }
 </style>
 </head>
 <body>
 <main>
 
-  <h1>Страница работает</h1>
+  <h1>Подготовка к НМТ</h1>
+  <p class="dim">Формулы и правила — чтобы переписать в тетрадь. Гайды — как решать по шагам. Тест — чтобы проверить, что навык появился.</p>
 
-  <p>Если ты это читаешь в интернете, а не у себя на компьютере, — значит весь путь уже собран:
-  репозиторий есть, страница опубликована, ссылку можно кинуть другу.</p>
+  <!-- Сюда скрипт вставляет кнопки предметов -->
+  <nav id="nav-predmety"></nav>
+  <!-- Сюда скрипт вставляет кнопки «Теория» / «Тест» -->
+  <nav id="nav-rezhim"></nav>
 
-  <p class="dim">Это всё, что здесь должно быть. Содержимое придумаешь ты, а сделает ИИ.</p>
-
-  <div class="box">
-    <p><strong>Твой следующий ход.</strong></p>
-    <p>Открой <code>zadanie-1.md</code> и напиши, какую страницу ты хочешь — <strong>до того</strong>, как попросишь ИИ.
-    Потом попроси. Потом запусти <code>./check.sh</code>.</p>
-    <p class="dim">Проверка сейчас краснеет на заголовке этой страницы: он так и называется
-    «Замени этот заголовок». Это нарочно.</p>
-  </div>
+  <!-- Сюда скрипт вставляет содержимое выбранного предмета -->
+  <div id="soderzhimoe"></div>
 
 </main>
+
+<script>
+/* ======================================================================
+   ДАННЫЕ. Весь сайт собирается из этого списка.
+   Чтобы добавить предмет — допиши ещё один объект в PREDMETY.
+   Чтобы добавить тему — допиши объект в "temy" нужного предмета.
+   Чтобы добавить вопрос — допиши объект в "test" нужного предмета.
+   Трогать код ниже данных для этого НЕ нужно.
+
+   Формат темы:   { nazvanie, formuly: [{ znak, slovami }], kakReshat: [строки] }
+   Формат вопроса:{ tema, vopros, varianty: [строки], pravilnyi: номер с 0, razbor }
+   ====================================================================== */
+
+const PREDMETY = [
+
+  {
+    id: "matematika",
+    nazvanie: "Математика",
+    temy: [
+      {
+        nazvanie: "Дроби и пропорции",
+        formuly: [
+          { znak: "a/b + c/d = (a·d + c·b) / (b·d)", slovami: "Складывать можно только одинаковые доли: сначала общий знаменатель." },
+          { znak: "a/b · c/d = (a·c) / (b·d)", slovami: "Умножаем числитель на числитель, знаменатель на знаменатель." },
+          { znak: "a/b : c/d = a/b · d/c", slovami: "Деление — это умножение на перевёрнутую дробь." },
+          { znak: "a/b = c/d  ⟹  a·d = b·c", slovami: "Главное свойство пропорции: произведение крест-накрест равно." }
+        ],
+        kakReshat: [
+          "Нашёл пропорцию — сразу перемножай крест-накрест, получится обычное уравнение.",
+          "Неизвестное оставь с одной стороны, числа перенеси в другую.",
+          "Раздели на коэффициент перед неизвестным.",
+          "Подставь ответ обратно в пропорцию и проверь, что обе части равны."
+        ]
+      },
+      {
+        nazvanie: "Проценты",
+        formuly: [
+          { znak: "p% от a  =  a · p/100", slovami: "Процент — это сотая часть. 15% = 0,15." },
+          { znak: "рост на p%:  a · (1 + p/100)", slovami: "Подорожало на 20% → умножаем на 1,2." },
+          { znak: "спад на p%:  a · (1 − p/100)", slovami: "Подешевело на 20% → умножаем на 0,8." },
+          { znak: "сколько процентов b от a:  (b / a) · 100%", slovami: "Делим часть на целое и умножаем на 100." }
+        ],
+        kakReshat: [
+          "Найди, что здесь целое (100%) — это самая частая ошибка в задачах на проценты.",
+          "Переведи проценты в множитель: 25% → 0,25, рост на 25% → 1,25.",
+          "Несколько изменений подряд — множители перемножаются, а не складываются.",
+          "Проверь порядок величины: ответ не может быть больше целого, если процент меньше 100."
+        ]
+      },
+      {
+        nazvanie: "Степени и корни",
+        formuly: [
+          { znak: "aᵐ · aⁿ = aᵐ⁺ⁿ", slovami: "Одинаковые основания при умножении — показатели складываются." },
+          { znak: "aᵐ : aⁿ = aᵐ⁻ⁿ", slovami: "При делении — вычитаются." },
+          { znak: "(aᵐ)ⁿ = aᵐ·ⁿ", slovami: "Степень от степени — показатели умножаются." },
+          { znak: "a⁻ⁿ = 1 / aⁿ,   a⁰ = 1", slovami: "Минус в показателе переворачивает дробь." },
+          { znak: "√(a·b) = √a · √b", slovami: "Корень разбивается на множители — так выносят из-под корня." }
+        ],
+        kakReshat: [
+          "Приведи все числа к одному основанию: 8 = 2³, 27 = 3³, 0,25 = 2⁻².",
+          "Собери показатели по правилам выше — получится одна степень.",
+          "Под корнем ищи полный квадрат-множитель: 50 = 25·2, значит √50 = 5√2.",
+          "Проверь на маленьких числах, если забыл правило: 2²·2³ = 4·8 = 32 = 2⁵."
+        ]
+      },
+      {
+        nazvanie: "Формулы сокращённого умножения",
+        formuly: [
+          { znak: "(a + b)² = a² + 2ab + b²", slovami: "Квадрат суммы. Средний член 2ab забывают чаще всего." },
+          { znak: "(a − b)² = a² − 2ab + b²", slovami: "Квадрат разности." },
+          { znak: "a² − b² = (a − b)(a + b)", slovami: "Разность квадратов — главный ускоритель вычислений." },
+          { znak: "a³ ± b³ = (a ± b)(a² ∓ ab + b²)", slovami: "Сумма и разность кубов." }
+        ],
+        kakReshat: [
+          "Увидел два квадрата с минусом — сразу раскладывай на (a−b)(a+b).",
+          "Числа вида 17² − 13² не считай в лоб: (17−13)(17+13) = 4·30 = 120.",
+          "В дробях разложи числитель и знаменатель — почти всегда что-то сократится.",
+          "После раскрытия скобок сверь количество слагаемых: у квадрата суммы их три."
+        ]
+      },
+      {
+        nazvanie: "Линейные и квадратные уравнения",
+        formuly: [
+          { znak: "ax + b = 0  ⟹  x = −b / a", slovami: "Линейное уравнение: одно решение." },
+          { znak: "D = b² − 4ac", slovami: "Дискриминант. D > 0 — два корня, D = 0 — один, D < 0 — корней нет." },
+          { znak: "x = (−b ± √D) / (2a)", slovami: "Корни квадратного уравнения." },
+          { znak: "x₁ + x₂ = −b/a,   x₁ · x₂ = c/a", slovami: "Теорема Виета: быстрый подбор корней." }
+        ],
+        kakReshat: [
+          "Приведи уравнение к виду ax² + bx + c = 0: всё в левую часть, справа ноль.",
+          "Выпиши отдельно a, b, c со знаками — ошибка в знаке b даёт неверный D.",
+          "Посчитай D, потом корни по формуле. Если a = 1, сначала попробуй Виета в уме.",
+          "Подставь оба корня в исходное уравнение — это и есть проверка."
+        ]
+      },
+      {
+        nazvanie: "Геометрия: площади и Пифагор",
+        formuly: [
+          { znak: "a² + b² = c²", slovami: "Теорема Пифагора: c — гипотенуза, против прямого угла." },
+          { znak: "S прямоугольника = a · b", slovami: "Сторона на сторону." },
+          { znak: "S треугольника = (a · h) / 2", slovami: "Основание на высоту, делить на два." },
+          { znak: "S круга = π r²,   C = 2π r", slovami: "Площадь круга и длина окружности." },
+          { znak: "S трапеции = ((a + b) / 2) · h", slovami: "Полусумма оснований на высоту." }
+        ],
+        kakReshat: [
+          "Нарисуй фигуру и подпиши на рисунке всё, что дано — без рисунка теряются данные.",
+          "Ищи прямой угол: он включает Пифагора, а значит третью сторону.",
+          "Сложную фигуру разрежь на прямоугольники и треугольники и складывай площади.",
+          "Сверь единицы: если сторона в см, площадь в см², а не в см."
+        ]
+      },
+      {
+        nazvanie: "Прогрессии",
+        formuly: [
+          { znak: "aₙ = a₁ + (n − 1)d", slovami: "Арифметическая: каждый следующий больше на d." },
+          { znak: "Sₙ = ((a₁ + aₙ) / 2) · n", slovami: "Сумма первых n членов арифметической прогрессии." },
+          { znak: "bₙ = b₁ · qⁿ⁻¹", slovami: "Геометрическая: каждый следующий в q раз больше." },
+          { znak: "Sₙ = b₁ · (qⁿ − 1) / (q − 1)", slovami: "Сумма геометрической прогрессии при q ≠ 1." }
+        ],
+        kakReshat: [
+          "Определи тип: разница одинаковая — арифметическая, отношение одинаковое — геометрическая.",
+          "Выпиши a₁ (или b₁), d (или q) и номер n, который просят.",
+          "Подставь в формулу n-го члена; внимательно с (n − 1), а не n.",
+          "Проверь на первых двух-трёх членах, что твоя d или q действительно такая."
+        ]
+      },
+      {
+        nazvanie: "Тригонометрия и логарифмы",
+        formuly: [
+          { znak: "sin²α + cos²α = 1", slovami: "Основное тригонометрическое тождество." },
+          { znak: "tg α = sin α / cos α", slovami: "Тангенс через синус и косинус." },
+          { znak: "sin 30° = 1/2,  sin 45° = √2/2,  sin 60° = √3/2", slovami: "Табличные значения. Косинусы — те же, но в обратном порядке." },
+          { znak: "log_a b = c  ⟺  aᶜ = b", slovami: "Логарифм — это показатель степени, и всё." },
+          { znak: "log_a(xy) = log_a x + log_a y", slovami: "Умножение внутри — сложение логарифмов." }
+        ],
+        kakReshat: [
+          "Логарифм читай вопросом: «в какую степень возвести основание, чтобы получить число?»",
+          "В тригонометрии сначала переводи всё в sin и cos — так видно, что сокращается.",
+          "Табличные углы 30°, 45°, 60° держи в тетради на видном месте: их спрашивают постоянно.",
+          "Проверяй область: логарифм существует только от положительного числа."
+        ]
+      }
+    ],
+    test: [
+      { tema: "Проценты", vopros: "Сколько составляет 15% от 240?",
+        varianty: ["36", "24", "32", "40"], pravilnyi: 0,
+        razbor: "15% = 0,15. Значит 240 · 0,15 = 36. Проверка: 10% это 24, ещё 5% это 12, вместе 36." },
+
+      { tema: "Дроби и пропорции", vopros: "Найди x из пропорции 3/4 = x/20.",
+        varianty: ["12", "15", "16", "18"], pravilnyi: 1,
+        razbor: "Крест-накрест: 3 · 20 = 4 · x, то есть 60 = 4x, значит x = 15." },
+
+      { tema: "Формулы сокращённого умножения", vopros: "Чему равно 17² − 13²?",
+        varianty: ["60", "90", "120", "150"], pravilnyi: 2,
+        razbor: "Разность квадратов: (17 − 13)(17 + 13) = 4 · 30 = 120. Считать 289 − 169 в лоб дольше." },
+
+      { tema: "Степени и корни", vopros: "Чему равно 2³ · 2⁴?",
+        varianty: ["2⁷ = 128", "2¹² = 4096", "4⁷", "2⁵ = 32"], pravilnyi: 0,
+        razbor: "Основания одинаковые — показатели складываются: 3 + 4 = 7, значит 2⁷ = 128." },
+
+      { tema: "Степени и корни", vopros: "Упрости √50.",
+        varianty: ["25√2", "5√2", "2√5", "10√5"], pravilnyi: 1,
+        razbor: "50 = 25 · 2, а √25 = 5. Выносим: √50 = 5√2." },
+
+      { tema: "Линейные и квадратные уравнения", vopros: "Корни уравнения x² − 5x + 6 = 0:",
+        varianty: ["1 и 6", "−2 и −3", "2 и 3", "корней нет"], pravilnyi: 2,
+        razbor: "По Виета: сумма корней 5, произведение 6. Это 2 и 3. Через дискриминант: D = 25 − 24 = 1." },
+
+      { tema: "Линейные и квадратные уравнения", vopros: "Реши уравнение 5(x − 2) = 3x + 4.",
+        varianty: ["x = 5", "x = 7", "x = 3", "x = 9"], pravilnyi: 1,
+        razbor: "Раскрываем: 5x − 10 = 3x + 4. Переносим: 2x = 14, значит x = 7." },
+
+      { tema: "Геометрия: площади и Пифагор", vopros: "Катеты прямоугольного треугольника 6 и 8. Чему равна гипотенуза?",
+        varianty: ["10", "12", "14", "√48"], pravilnyi: 0,
+        razbor: "По Пифагору: 6² + 8² = 36 + 64 = 100, значит c = √100 = 10." },
+
+      { tema: "Геометрия: площади и Пифагор", vopros: "Площадь круга радиусом 3 равна:",
+        varianty: ["6π", "9π", "3π", "12π"], pravilnyi: 1,
+        razbor: "S = πr² = π · 3² = 9π. Длина окружности была бы 2πr = 6π — их часто путают." },
+
+      { tema: "Прогрессии", vopros: "Арифметическая прогрессия: a₁ = 4, d = 3. Чему равен a₁₀?",
+        varianty: ["34", "31", "30", "37"], pravilnyi: 1,
+        razbor: "aₙ = a₁ + (n − 1)d = 4 + 9 · 3 = 31. Девять шагов, а не десять — это и есть (n − 1)." },
+
+      { tema: "Тригонометрия и логарифмы", vopros: "Чему равен log₂ 8?",
+        varianty: ["2", "3", "4", "8"], pravilnyi: 1,
+        razbor: "Вопрос такой: в какую степень возвести 2, чтобы вышло 8? 2³ = 8, значит ответ 3." },
+
+      { tema: "Тригонометрия и логарифмы", vopros: "Чему равен sin 30°?",
+        varianty: ["1/2", "√2/2", "√3/2", "1"], pravilnyi: 0,
+        razbor: "Табличное значение: sin 30° = 1/2. А cos 30° = √3/2 — их путают местами." },
+
+      { tema: "Проценты", vopros: "Товар подешевел на 20%, потом подорожал на 20%. Что с ценой?",
+        varianty: ["та же", "на 4% меньше", "на 4% больше", "на 2% меньше"], pravilnyi: 1,
+        razbor: "Множители перемножаются: 0,8 · 1,2 = 0,96. Это 96% начальной цены, то есть на 4% меньше." },
+
+      { tema: "Формулы сокращённого умножения", vopros: "Раскрой (a + b)² при a = 3, b = 2.",
+        varianty: ["13", "25", "11", "36"], pravilnyi: 1,
+        razbor: "(a + b)² = a² + 2ab + b² = 9 + 12 + 4 = 25. Это же (3 + 2)² = 5² = 25." }
+    ]
+  },
+
+  /* Заготовки на будущее. Когда дойдёт очередь — наполняй "temy" и "test"
+     в том же формате, что у математики. Больше ничего менять не надо. */
+  { id: "angliyskiy", nazvanie: "Английский", temy: [], test: [] },
+  { id: "ukrainskiy", nazvanie: "Украинский язык", temy: [], test: [] },
+  { id: "istoriya",   nazvanie: "История Украины", temy: [], test: [] }
+
+];
+
+/* ======================================================================
+   КОД. Ниже — сборка страницы из данных выше.
+   ====================================================================== */
+
+// Что сейчас открыто
+let predmetId = PREDMETY[0].id;
+let rezhim = "teoriya";          // "teoriya" или "test"
+let otvety = {};                 // номер вопроса -> номер выбранного варианта
+
+// Безопасный текст: чтобы данные не ломали вёрстку
+function tekst(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function tekushchiyPredmet() {
+  return PREDMETY.find(function (p) { return p.id === predmetId; });
+}
+
+// Кнопки предметов
+function narisuyNavPredmety() {
+  document.getElementById("nav-predmety").innerHTML = PREDMETY.map(function (p) {
+    return '<button data-predmet="' + p.id + '" aria-pressed="' + (p.id === predmetId) + '">' +
+           tekst(p.nazvanie) + '</button>';
+  }).join("");
+}
+
+// Кнопки «Теория» / «Тест»
+function narisuyNavRezhim() {
+  const t = tekushchiyPredmet();
+  document.getElementById("nav-rezhim").innerHTML =
+    '<button data-rezhim="teoriya" aria-pressed="' + (rezhim === "teoriya") + '">Формулы и правила (' + t.temy.length + ')</button>' +
+    '<button data-rezhim="test" aria-pressed="' + (rezhim === "test") + '">Тест (' + t.test.length + ')</button>';
+}
+
+// Раздел «Формулы и правила»: формула, что она значит словами, и шаги решения
+function teoriyaHTML(p) {
+  if (p.temy.length === 0) {
+    return '<div class="card"><p>По предмету «' + tekst(p.nazvanie) + '» формул пока нет.</p>' +
+           '<p class="dim small">Это заготовка. Темы добавляются в список PREDMETY в начале файла — ' +
+           'в поле "temy" этого предмета, в том же формате, что у математики.</p></div>';
+  }
+  return p.temy.map(function (tema) {
+    const formuly = tema.formuly.map(function (f) {
+      return '<code class="formula">' + tekst(f.znak) + '</code>' +
+             '<p class="formula-slovami small dim">' + tekst(f.slovami) + '</p>';
+    }).join("");
+    const shagi = tema.kakReshat.map(function (s) {
+      return '<li>' + tekst(s) + '</li>';
+    }).join("");
+    return '<section class="card">' +
+             '<h3>' + tekst(tema.nazvanie) + '</h3>' +
+             formuly +
+             '<p class="small"><strong>Как решать</strong></p>' +
+             '<ol class="steps small">' + shagi + '</ol>' +
+           '</section>';
+  }).join("") + zapisiHTML();
+}
+
+// Место для своих записей: формулы переписываешь в тетрадь, а сюда — свои слова
+function zapisiHTML() {
+  return '<section class="card">' +
+           '<h3>Мои записи по предмету</h3>' +
+           '<p class="small dim">Выпиши своими словами то, что забывается. Текст остаётся в этом браузере.</p>' +
+           '<textarea id="zapisi" placeholder="Например: в (a+b)² я забываю средний член 2ab."></textarea>' +
+         '</section>';
+}
+
+// Тест: вопрос, варианты, после ответа — разбор решения
+function testHTML(p) {
+  if (p.test.length === 0) {
+    return '<div class="card"><p>По предмету «' + tekst(p.nazvanie) + '» вопросов пока нет.</p>' +
+           '<p class="dim small">Вопросы добавляются в поле "test" этого предмета в списке PREDMETY.</p></div>';
+  }
+
+  const vsego = p.test.length;
+  let verno = 0;
+  for (const nomer in otvety) {
+    if (p.test[nomer] && otvety[nomer] === p.test[nomer].pravilnyi) { verno++; }
+  }
+  const otvecheno = Object.keys(otvety).length;
+
+  const schet = '<div class="card"><p><strong>Отвечено: ' + otvecheno + ' из ' + vsego +
+                '. Верно: ' + verno + '.</strong></p>' +
+                '<button id="sbros">Начать тест заново</button></div>';
+
+  const voprosy = p.test.map(function (v, i) {
+    const vybran = otvety[i];
+    const estOtvet = (vybran !== undefined);
+
+    const varianty = v.varianty.map(function (text, j) {
+      let metka = "";
+      if (estOtvet && j === v.pravilnyi) { metka = " ✔"; }
+      if (estOtvet && j === vybran && j !== v.pravilnyi) { metka = " ✘"; }
+      const nazhata = (estOtvet && j === vybran);
+      return '<button data-vopros="' + i + '" data-variant="' + j + '" aria-pressed="' + nazhata + '">' +
+             tekst(text) + metka + '</button>';
+    }).join("");
+
+    let razbor = "";
+    if (estOtvet) {
+      const itog = (vybran === v.pravilnyi)
+        ? '<span class="verno">Верно.</span>'
+        : '<span class="neverno">Неверно.</span> Правильный ответ: ' + tekst(v.varianty[v.pravilnyi]) + '.';
+      razbor = '<div class="razbor small"><p>' + itog + '</p><p>' + tekst(v.razbor) + '</p></div>';
+    }
+
+    return '<section class="card">' +
+             '<p class="small dim">Вопрос ' + (i + 1) + ' из ' + vsego + ' · ' + tekst(v.tema) + '</p>' +
+             '<p><strong>' + tekst(v.vopros) + '</strong></p>' +
+             '<div class="varianty">' + varianty + '</div>' +
+             razbor +
+           '</section>';
+  }).join("");
+
+  return schet + voprosy;
+}
+
+function narisuy() {
+  const p = tekushchiyPredmet();
+  narisuyNavPredmety();
+  narisuyNavRezhim();
+  document.getElementById("soderzhimoe").innerHTML =
+    (rezhim === "teoriya") ? teoriyaHTML(p) : testHTML(p);
+  if (rezhim === "teoriya") { podklyuchiZapisi(p); }
+}
+
+// Записи храним в браузере. Если хранилище недоступно — страница всё равно работает.
+function podklyuchiZapisi(p) {
+  const pole = document.getElementById("zapisi");
+  if (!pole) { return; }
+  const klyuch = "zapisi-" + p.id;
+  try { pole.value = localStorage.getItem(klyuch) || ""; } catch (e) { /* ничего */ }
+  pole.addEventListener("input", function () {
+    try { localStorage.setItem(klyuch, pole.value); } catch (e) { /* ничего */ }
+  });
+}
+
+// Один обработчик на все кнопки страницы
+document.addEventListener("click", function (e) {
+  const knopka = e.target.closest("button");
+  if (!knopka) { return; }
+
+  if (knopka.dataset.predmet) {
+    predmetId = knopka.dataset.predmet;
+    otvety = {};
+    narisuy();
+  } else if (knopka.dataset.rezhim) {
+    rezhim = knopka.dataset.rezhim;
+    narisuy();
+  } else if (knopka.dataset.vopros) {
+    otvety[knopka.dataset.vopros] = Number(knopka.dataset.variant);
+    narisuy();
+  } else if (knopka.id === "sbros") {
+    otvety = {};
+    narisuy();
+  }
+});
+
+narisuy();
+</script>
 </body>
 </html>
